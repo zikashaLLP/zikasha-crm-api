@@ -1,0 +1,263 @@
+const { Op } = require('sequelize');
+const Inquiry = require('../models/Inquiry');
+const Customer = require('../models/Customer');
+const Category = require('../models/Category');
+
+exports.createInquiry = async (req, res) => {
+  try {
+    const { category_id, customer_id, followup_date, location } = req.body;
+    const agency_id = req.user.agencyId;
+
+    const inquiry = await Inquiry.create({
+      category_id,
+      customer_id,
+      followup_date,
+      location,
+      agency_id
+    });
+
+    res.status(201).json(inquiry);
+  } catch (err) {
+    res.status(500).json({ message: 'Error creating inquiry', error: err.message });
+  }
+};
+
+// exports.getInquiries = async (req, res) => {
+//   try {
+//     const agency_id = req.user.agencyId;
+//     const { category_id, customer_id, followup_date_start, followup_date_end } = req.query;
+
+//     const where = { agency_id };
+
+//     if (category_id) where.category_id = category_id;
+//     if (customer_id) where.customer_id = customer_id;
+
+//     // Handle followup_date filters
+//     if (followup_date_start || followup_date_end) {
+//       where.followup_date = {};
+      
+//       if (followup_date_start) {
+//         const startDate = new Date(followup_date_start);
+//         startDate.setHours(0, 0, 0, 0); // Start of the day
+//         where.followup_date[Op.gte] = startDate;
+//       }
+      
+//       if (followup_date_end) {
+//         const endDate = new Date(followup_date_end);
+//         endDate.setHours(23, 59, 59, 999); // End of the day
+//         where.followup_date[Op.lte] = endDate;
+//       }
+//     }
+
+//     // Pagination and sorting
+//     const { sort_by = 'createdAt', sort_order = 'desc', limit = 20, page = 1 } = req.query;
+//     const parsedLimit = parseInt(limit);
+//     const parsedPage = parseInt(page);
+//     const offset = (parsedPage - 1) * parsedLimit;
+
+//     const inquiries = await Inquiry.findAll({
+//       where,
+//       include: [Customer, Category],
+//       order: [[sort_by, sort_order]],
+//       limit: parsedLimit,
+//       offset
+//     });
+
+//     res.json(inquiries);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Error fetching inquiries', error: err.message });
+//   }
+// };
+
+exports.getInquiries = async (req, res) => {
+  try {
+    const agency_id = req.user.agencyId;
+    const { category_id, customer_id, followup_date_start, followup_date_end, followup_date } = req.query;
+
+    const where = { agency_id };
+
+    if (category_id) where.category_id = category_id;
+    if (customer_id) where.customer_id = customer_id;
+
+    // Handle followup_date filters
+    if (followup_date) {
+      // Filter for a specific date only
+      const specificDate = new Date(followup_date);
+      const startOfDay = new Date(specificDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(specificDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      where.followup_date = {
+        [Op.gte]: startOfDay,
+        [Op.lte]: endOfDay
+      };
+    } else if (followup_date_start || followup_date_end) {
+      // Filter for date range
+      where.followup_date = {};
+      
+      if (followup_date_start) {
+        const startDate = new Date(followup_date_start);
+        startDate.setHours(0, 0, 0, 0); // Start of the day
+        where.followup_date[Op.gte] = startDate;
+      }
+      
+      if (followup_date_end) {
+        const endDate = new Date(followup_date_end);
+        endDate.setHours(23, 59, 59, 999); // End of the day
+        where.followup_date[Op.lte] = endDate;
+      }
+    }
+
+    // Pagination and sorting
+    const { sort_by = 'createdAt', sort_order = 'desc', limit = 20, page = 1 } = req.query;
+    const parsedLimit = parseInt(limit);
+    const parsedPage = parseInt(page);
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    const inquiries = await Inquiry.findAll({
+      where,
+      include: [Customer, Category],
+      order: [[sort_by, sort_order]],
+      limit: parsedLimit,
+      offset
+    });
+
+    res.json(inquiries);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching inquiries', error: err.message });
+  }
+};
+
+// exports.getInquiries = async (req, res) => {
+//   try {
+//     const agency_id = req.user.agencyId;
+//     const { category_id, customer_id, followup_date_start, followup_date_end, followup_date } = req.query;
+
+//     const where = { agency_id };
+
+//     if (category_id) where.category_id = category_id;
+//     if (customer_id) where.customer_id = customer_id;
+
+//     // Handle followup_date filters
+//     if (followup_date) {
+//       // Filter for a specific date only
+//       const specificDate = new Date(followup_date);
+      
+//       // Create start of day in UTC
+//       const startOfDay = new Date(Date.UTC(
+//         specificDate.getUTCFullYear(),
+//         specificDate.getUTCMonth(),
+//         specificDate.getUTCDate(),
+//         0, 0, 0, 0
+//       ));
+      
+//       // Create end of day in UTC
+//       const endOfDay = new Date(Date.UTC(
+//         specificDate.getUTCFullYear(),
+//         specificDate.getUTCMonth(),
+//         specificDate.getUTCDate(),
+//         23, 59, 59, 999
+//       ));
+      
+//       where.followup_date = {
+//         [Op.gte]: startOfDay,
+//         [Op.lte]: endOfDay
+//       };
+//     } else if (followup_date_start || followup_date_end) {
+//       // Filter for date range
+//       where.followup_date = {};
+      
+//       if (followup_date_start) {
+//         const startDate = new Date(followup_date_start);
+//         const startOfDay = new Date(Date.UTC(
+//           startDate.getUTCFullYear(),
+//           startDate.getUTCMonth(),
+//           startDate.getUTCDate(),
+//           0, 0, 0, 0
+//         ));
+//         where.followup_date[Op.gte] = startOfDay;
+//       }
+      
+//       if (followup_date_end) {
+//         const endDate = new Date(followup_date_end);
+//         const endOfDay = new Date(Date.UTC(
+//           endDate.getUTCFullYear(),
+//           endDate.getUTCMonth(),
+//           endDate.getUTCDate(),
+//           23, 59, 59, 999
+//         ));
+//         where.followup_date[Op.lte] = endOfDay;
+//       }
+//     }
+
+//     // Pagination and sorting
+//     const { sort_by = 'createdAt', sort_order = 'desc', limit = 20, page = 1 } = req.query;
+//     const parsedLimit = parseInt(limit);
+//     const parsedPage = parseInt(page);
+//     const offset = (parsedPage - 1) * parsedLimit;
+
+//     const inquiries = await Inquiry.findAll({
+//       where,
+//       include: [Customer, Category],
+//       order: [[sort_by, sort_order]],
+//       limit: parsedLimit,
+//       offset
+//     });
+
+//     res.json(inquiries);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Error fetching inquiries', error: err.message });
+//   }
+// };
+
+exports.getInquiryById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const agency_id = req.user.agencyId;
+
+    const inquiry = await Inquiry.findOne({
+      where: { id, agency_id },
+      include: [Customer, Category]
+    });
+
+    if (!inquiry) return res.status(404).json({ message: 'Inquiry not found' });
+
+    res.json(inquiry);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching inquiry', error: err.message });
+  }
+};
+
+exports.updateInquiry = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const agency_id = req.user.agencyId;
+
+    const inquiry = await Inquiry.findOne({ where: { id, agency_id } });
+    if (!inquiry) return res.status(404).json({ message: 'Inquiry not found' });
+
+    await inquiry.update(req.body);
+    res.json(inquiry);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating inquiry', error: err.message });
+  }
+};
+
+exports.deleteInquiry = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const agency_id = req.user.agencyId;
+
+    const inquiry = await Inquiry.findOne({ where: { id, agency_id } });
+    if (!inquiry) return res.status(404).json({ message: 'Inquiry not found' });
+
+    await inquiry.destroy();
+    res.json({ message: 'Inquiry deleted' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting inquiry', error: err.message });
+  }
+};
