@@ -1,9 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const User = require('../models/User');
 const Agency = require('../models/Agency');
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// In-memory store for refresh tokens (use DB in production)
+let refreshTokens = [];
 
 // Register user
 exports.register = async (req, res) => {
@@ -38,15 +41,35 @@ exports.login = async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign(
-      { userId: user.id, agencyId: user.agency_id, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1d' }
-    );
 
-    res.json({ token, user: { id: user.id, name: user.name, email: user.email, agency: user.Agency.name } });
+    console.log('expired token:', process.env.JWT_EXPIRATION);
+
+    const payload = { userId: user.id, agencyId: user.agency_id, role: user.role };
+    const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '15min' });
+    const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRATION || '15d' });
+
+    res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, agency: user.Agency.name, agencyId: user.agency_id, role: user.role } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Login failed' });
+  }
+};
+
+exports.refreshToken = (req, res) => {
+  const refreshToken = req.body.refreshToken;
+
+  if (!refreshToken || !refreshTokens.includes(refreshToken)) {
+    return res.status(403).json({ message: 'Refresh token not found, login again' });
+  }
+  try {
+    const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    const accessToken = jwt.sign(
+      { userId: payload.userId, agencyId: payload.agencyId, role: payload.role },
+      JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRATION || '15min' }
+    );
+    res.json({ accessToken });
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
