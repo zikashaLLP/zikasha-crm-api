@@ -1,0 +1,27 @@
+name: 🚀 Deploy to VPS on Main Push
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push or merge to main
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_PRIVATE_KEY }}
+          script: |
+            cd /var/www/zikasha-crm-api
+            git pull origin main
+            npm install
+            pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
