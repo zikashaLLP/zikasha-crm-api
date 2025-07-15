@@ -13,6 +13,10 @@ exports.verifyToken = (req, res, next) => {
     req.user = decoded; // { userId, agencyId, role }
     next();
   } catch (err) {
+    // Check if the error is due to an expired token
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error_code: 'jwt_token_expired', message: 'Token expired, please login again'});
+    }
     res.status(401).json({ message: 'Invalid token' });
   }
 };
