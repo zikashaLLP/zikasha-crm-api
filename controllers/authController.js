@@ -48,6 +48,8 @@ exports.login = async (req, res) => {
     const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '15min' });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRATION || '15d' });
 
+    refreshTokens.push(refreshToken); // Store refresh token in memory (use DB in production)
+
     res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, agency: user.Agency.name, agencyId: user.agency_id, role: user.role } });
   } catch (error) {
     console.error(error);
@@ -57,7 +59,7 @@ exports.login = async (req, res) => {
 
 exports.refreshToken = (req, res) => {
   const refreshToken = req.body.refreshToken;
-
+  
   if (!refreshToken || !refreshTokens.includes(refreshToken)) {
     return res.status(403).json({ message: 'Refresh token not found, login again' });
   }
