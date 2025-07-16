@@ -28,11 +28,12 @@ exports.createLog = async (req, res) => {
     // Update inquiry with new category_id and followup_date if provided
     await inquiry.update({
       ...(category_id && { category_id }),
-      ...(followup_date && { followup_date })
+      ...(followup_date && { followup_date }),
+      latest_log: content,
     });
 
     // Create the log entry
-    const log = await Log.create({ inquiry_id, content, hint, followup_date, latest_log: content });
+    const log = await Log.create({ inquiry_id, content, hint, followup_date });
 
     res.status(201).json(log);
   } catch (err) {
