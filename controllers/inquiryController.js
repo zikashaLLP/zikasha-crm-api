@@ -37,9 +37,9 @@ exports.getInquiries = async (req, res) => {
       // Filter for a specific date only
       const specificDate = new Date(followup_date);
       const startOfDay = new Date(specificDate);
-      startOfDay.setHours(0, 0, 0, 0);
+      startOfDay.setUTCHours(0, 0, 0, 0);
       const endOfDay = new Date(specificDate);
-      endOfDay.setHours(23, 59, 59, 999);
+      endOfDay.setUTCHours(23, 59, 59, 999);
       
       where.followup_date = {
         [Op.gte]: startOfDay,
@@ -51,13 +51,13 @@ exports.getInquiries = async (req, res) => {
       
       if (followup_date_start) {
         const startDate = new Date(followup_date_start);
-        startDate.setHours(0, 0, 0, 0); // Start of the day
+        startDate.setUTCHours(0, 0, 0, 0); // Start of the day
         where.followup_date[Op.gte] = startDate;
       }
       
       if (followup_date_end) {
         const endDate = new Date(followup_date_end);
-        endDate.setHours(23, 59, 59, 999); // End of the day
+        endDate.setUTCHours(23, 59, 59, 999); // End of the day
         where.followup_date[Op.lte] = endDate;
       }
     }
