@@ -33,32 +33,16 @@ exports.getInquiries = async (req, res) => {
     if (customer_id) where.customer_id = customer_id;
 
     // Handle followup_date filters
-    if (followup_date) {
-      // Filter for a specific date only
-      const specificDate = new Date(followup_date);
-      const startOfDay = new Date(specificDate);
-      startOfDay.setUTCHours(0, 0, 0, 0);
-      const endOfDay = new Date(specificDate);
-      endOfDay.setUTCHours(23, 59, 59, 999);
-      
-      where.followup_date = {
-        [Op.gte]: startOfDay,
-        [Op.lte]: endOfDay
-      };
-    } else if (followup_date_start || followup_date_end) {
+    if (followup_date_start || followup_date_end) {
       // Filter for date range
       where.followup_date = {};
       
       if (followup_date_start) {
-        const startDate = new Date(followup_date_start);
-        startDate.setUTCHours(0, 0, 0, 0); // Start of the day
-        where.followup_date[Op.gte] = startDate;
+        where.followup_date[Op.gte] = followup_date_start;
       }
       
       if (followup_date_end) {
-        const endDate = new Date(followup_date_end);
-        endDate.setUTCHours(23, 59, 59, 999); // End of the day
-        where.followup_date[Op.lte] = endDate;
+        where.followup_date[Op.lte] = followup_date_end;
       }
     }
 
