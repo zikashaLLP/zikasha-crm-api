@@ -24,7 +24,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/logs', logRoutes);
 
 // Sync and connect
-sequelize.sync({ alter: process.env.ENVIRONMENT === 'development' }) // For dev only. Use migrations in prod.
+sequelize.sync({ alter: true })
   .then(() => {
     console.log('DB connected and models synced');
     app.listen(process.env.PORT, () =>
