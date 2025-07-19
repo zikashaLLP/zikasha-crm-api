@@ -2,10 +2,10 @@ const Category = require('../models/Category');
 
 exports.createCategory = async (req, res) => {
   try {
-    const { name, slug } = req.body;
+    const { name, slug, color, exclude_from_search } = req.body;
     const agency_id = req.user.agencyId;
 
-    const category = await Category.create({ name, slug, agency_id });
+    const category = await Category.create({ name, slug, agency_id, color, exclude_from_search });
     res.status(201).json(category);
   } catch (err) {
     res.status(500).json({ message: 'Error creating category', error: err.message });
@@ -43,6 +43,9 @@ exports.updateCategory = async (req, res) => {
 
     const category = await Category.findOne({ where: { id, agency_id } });
     if (!category) return res.status(404).json({ message: 'Category not found' });
+
+    console.log(`Updating category with ID: ${id}`, req.body);
+    
 
     await category.update(req.body);
     res.json(category);

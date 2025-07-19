@@ -25,7 +25,7 @@ exports.createInquiry = async (req, res) => {
 exports.getInquiries = async (req, res) => {
   try {
     const agency_id = req.user.agencyId;
-    const { category_id, customer_id, followup_date_start, followup_date_end, followup_date } = req.query;
+    const { category_id, customer_id, followup_date_start, followup_date_end, exclude_categories } = req.query;
 
     const where = { agency_id };
 
@@ -44,6 +44,11 @@ exports.getInquiries = async (req, res) => {
       if (followup_date_end) {
         where.followup_date[Op.lte] = followup_date_end;
       }
+    }
+
+    if (exclude_categories) {
+      // Exclude specific categories
+      where.category_id = { [Op.notIn]: exclude_categories.split(',').map(Number) };
     }
 
     // Pagination and sorting

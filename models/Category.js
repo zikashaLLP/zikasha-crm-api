@@ -10,6 +10,14 @@ const Category = sequelize.define('Category', {
   slug: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  color: {
+    type: DataTypes.STRING,
+    defaultValue: '',
+  },
+  exclude_from_search: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   }
 }, {
   timestamps: true
