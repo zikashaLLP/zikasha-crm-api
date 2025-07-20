@@ -12,11 +12,30 @@ exports.createCustomer = async (req, res) => {
   }
 };
 
+
 exports.getCustomers = async (req, res) => {
+  const { sort_by = 'createdAt', sort_order = 'desc', limit = 20, page = 1 } = req.query;
+  const parsedLimit = parseInt(limit);
+  const parsedPage = parseInt(page);
+  const offset = (parsedPage - 1) * parsedLimit;
+
   try {
     const agency_id = req.user.agencyId;
-    const customers = await Customer.findAll({ where: { agency_id } });
-    res.json(customers);
+    
+    // Get both customers and total count
+    const { rows: customers, count: total } = await Customer.findAndCountAll({ 
+      where: { agency_id },
+      order: [[sort_by, sort_order]],
+      limit: parsedLimit,
+      offset
+    });
+    
+    res.json({
+      customers,
+      total,
+      page: parsedPage,
+      totalPages: Math.ceil(total / parsedLimit)
+    });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching customers', error: err.message });
   }
