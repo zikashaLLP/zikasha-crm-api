@@ -25,7 +25,7 @@ exports.createInquiry = async (req, res) => {
 exports.getInquiries = async (req, res) => {
   try {
     const agency_id = req.user.agencyId;
-    const { category_id, customer_id, followup_date_start, followup_date_end, exclude_categories } = req.query;
+    const { category_id, customer_id, followup_date_start, followup_date_end, exclude_categories, sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
 
     const where = { agency_id };
 
@@ -51,21 +51,42 @@ exports.getInquiries = async (req, res) => {
       where.category_id = { [Op.notIn]: exclude_categories.split(',').map(Number) };
     }
 
-    // Pagination and sorting
-    const { sort_by = 'createdAt', sort_order = 'desc', limit = 20, page = 1 } = req.query;
-    const parsedLimit = parseInt(limit);
-    const parsedPage = parseInt(page);
-    const offset = (parsedPage - 1) * parsedLimit;
-
-    const inquiries = await Inquiry.findAll({
+    // Build base query options
+    const queryOptions = {
       where,
       include: [Customer, Category],
-      order: [[sort_by, sort_order]],
-      limit: parsedLimit,
-      offset
-    });
+      order: [[sort_by, sort_order]]
+    };
 
-    res.json(inquiries);
+    // Only add pagination if both limit and page are provided
+    if (limit && page) {
+      const parsedLimit = parseInt(limit);
+      const parsedPage = parseInt(page);
+      const offset = (parsedPage - 1) * parsedLimit;
+      
+      queryOptions.limit = parsedLimit;
+      queryOptions.offset = offset;
+      
+      // Get paginated results with count
+      const { rows: inquiries, count: total } = await Inquiry.findAndCountAll(queryOptions);
+      
+      res.json({
+        inquiries,
+        total,
+        page: parsedPage,
+        totalPages: Math.ceil(total / parsedLimit),
+        isPaginated: true
+      });
+    } else {
+      // Get all inquiries without pagination
+      const inquiries = await Inquiry.findAll(queryOptions);
+      
+      res.json({
+        inquiries,
+        total: inquiries.length,
+        isPaginated: false
+      });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching inquiries', error: err.message });
