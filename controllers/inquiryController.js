@@ -78,7 +78,7 @@ exports.getInquiries = async (req, res) => {
         isPaginated: true
       });
     } else {
-      // Get all inquiries without pagination
+      // Get all inquiries without pagination.
       const inquiries = await Inquiry.findAll(queryOptions);
       
       res.json({
