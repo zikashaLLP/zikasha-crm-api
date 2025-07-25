@@ -65,6 +65,18 @@ exports.refreshToken = (req, res) => {
   }
   try {
     const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    
+    // Handle superadmin tokens
+    if (payload.role === 'superadmin') {
+      const accessToken = jwt.sign(
+        { userId: payload.userId, role: payload.role, email: payload.email },
+        JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRATION || '15min' }
+      );
+      return res.json({ accessToken });
+    }
+    
+    // Handle regular user tokens
     const accessToken = jwt.sign(
       { userId: payload.userId, agencyId: payload.agencyId, role: payload.role },
       JWT_SECRET,
