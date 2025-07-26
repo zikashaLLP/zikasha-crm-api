@@ -52,26 +52,86 @@ exports.getAgencyById = async (req, res) => {
   }
 };
 
+// exports.getAgencyUsers = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
+
+//     const agency = await Agency.findByPk(id);
+//     if (!agency) return res.status(404).json({ message: 'Agency not found' });
+
+//     const users = await User.findAll({ 
+//       where: { agency_id: id },
+//       attributes: { exclude: ['password_hash'] }
+//     });
+
+//     res.json({
+//       agency: {
+//         id: agency.id,
+//         name: agency.name,
+//         slug: agency.slug
+//       },
+//       users
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: 'Error fetching agency users', error: err.message });
+//   }
+// };
+
 exports.getAgencyUsers = async (req, res) => {
   try {
     const { id } = req.params;
+    const { sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
 
     const agency = await Agency.findByPk(id);
     if (!agency) return res.status(404).json({ message: 'Agency not found' });
 
-    const users = await User.findAll({ 
+    // Build base query options
+    const queryOptions = {
       where: { agency_id: id },
-      attributes: { exclude: ['password_hash'] }
-    });
+      attributes: { exclude: ['password_hash'] },
+      order: [[sort_by, sort_order]]
+    };
 
-    res.json({
-      agency: {
-        id: agency.id,
-        name: agency.name,
-        slug: agency.slug
-      },
-      users
-    });
+    // Only add pagination if both limit and page are provided
+    if (limit && page) {
+      const parsedLimit = parseInt(limit);
+      const parsedPage = parseInt(page);
+      const offset = (parsedPage - 1) * parsedLimit;
+      
+      queryOptions.limit = parsedLimit;
+      queryOptions.offset = offset;
+      
+      // Get paginated results with count
+      const { rows: users, count: total } = await User.findAndCountAll(queryOptions);
+      
+      res.json({
+        agency: {
+          id: agency.id,
+          name: agency.name,
+          slug: agency.slug
+        },
+        users,
+        total,
+        page: parsedPage,
+        totalPages: Math.ceil(total / parsedLimit),
+        isPaginated: true
+      });
+    } else {
+      // Get all users without pagination
+      const users = await User.findAll(queryOptions);
+      
+      res.json({
+        agency: {
+          id: agency.id,
+          name: agency.name,
+          slug: agency.slug
+        },
+        users,
+        total: users.length,
+        isPaginated: false
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: 'Error fetching agency users', error: err.message });
   }

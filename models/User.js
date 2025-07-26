@@ -10,7 +10,7 @@ const User = sequelize.define('User', {
   },
   password_hash: DataTypes.STRING,
   role: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('admin', 'staff'),
     defaultValue: 'staff',
   }
 }, { timestamps: true });

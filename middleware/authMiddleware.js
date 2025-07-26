@@ -20,3 +20,33 @@ exports.verifyToken = (req, res, next) => {
     res.status(401).json({ message: 'Invalid token' });
   }
 };
+
+exports.verifyAdmin = (req, res, next) => {
+  const user = req.user;
+
+  if(user.role !== 'admin') {
+    return res.status(403).json({ message: "You are not permitted to perform this action" });
+  }
+
+  next();
+}
+
+exports.verifySuperAdmin = (req, res, next) => {
+  const user = req.user;
+
+  if(user.role !== 'superadmin') {
+    return res.status(403).json({ message: "You are not permitted to perform this action" });
+  }
+
+  next();
+}
+
+exports.verifyAdminOrSuperadmin = (req, res, next) => {
+  const user = req.user;
+
+  if(user.role !== 'admin' && user.role !== 'superadmin') {
+    return res.status(403).json({ message: "You are not permitted to perform this action" });
+  }
+
+  next();
+}

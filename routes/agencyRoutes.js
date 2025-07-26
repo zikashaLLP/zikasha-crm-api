@@ -2,16 +2,14 @@
 const express = require('express');
 const router = express.Router();
 const agencyController = require('../controllers/agencyController');
-const { verifySuperadmin } = require('../middleware/superadminMiddleware');
+const { verifyToken, verifyAdmin, verifySuperAdmin, verifyAdminOrSuperadmin } = require('../middleware/authMiddleware');
 
-// All agency routes require superadmin authentication
-router.use(verifySuperadmin);
+router.post('/', verifyToken, verifySuperAdmin, agencyController.createAgency);
+router.get('/', verifyToken, verifySuperAdmin, agencyController.getAgencies);
+router.get('/:id', verifyToken, agencyController.getAgencyById);
+router.put('/:id', verifyToken, verifySuperAdmin, agencyController.updateAgency);
+router.delete('/:id', verifyToken, verifySuperAdmin, agencyController.deleteAgency);
 
-router.post('/', agencyController.createAgency);
-router.get('/', agencyController.getAgencies);
-router.get('/:id', agencyController.getAgencyById);
-router.get('/:id/users', agencyController.getAgencyUsers);
-router.put('/:id', agencyController.updateAgency);
-router.delete('/:id', agencyController.deleteAgency);
+router.get('/:id/users', verifyToken, verifyAdminOrSuperadmin, agencyController.getAgencyUsers);
 
 module.exports = router;

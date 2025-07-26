@@ -41,9 +41,6 @@ exports.login = async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ message: 'Invalid credentials' });
 
-
-    console.log('expired token:', process.env.JWT_EXPIRATION);
-
     const payload = { userId: user.id, agencyId: user.agency_id, role: user.role };
     const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '15min' });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRATION || '15d' });
