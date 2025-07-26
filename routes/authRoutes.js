@@ -6,4 +6,7 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/refresh', authController.refreshToken);
 
+// Superadmin login endpoint
+router.post('/superadmin/login', authController.superadminLogin);
+
 module.exports = router;

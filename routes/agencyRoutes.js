@@ -2,10 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const agencyController = require('../controllers/agencyController');
-const { verifySuperadmin, superadminLogin } = require('../middleware/superadminMiddleware');
-
-// Superadmin login endpoint
-router.post('/superadmin/login', superadminLogin);
+const { verifySuperadmin } = require('../middleware/superadminMiddleware');
 
 // All agency routes require superadmin authentication
 router.use(verifySuperadmin);
