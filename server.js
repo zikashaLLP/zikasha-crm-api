@@ -9,6 +9,7 @@ const customerRoutes = require('./routes/customerRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const logRoutes = require('./routes/logRoutes');
+const agency_routes = require('./routes/agencyRoutes');
 
 
 require('dotenv').config();
@@ -22,6 +23,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/logs', logRoutes);
+app.use('/api/agencies', agency_routes);
 
 // Sync and connect
 sequelize.sync({ alter: true })

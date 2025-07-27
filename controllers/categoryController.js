@@ -44,9 +44,6 @@ exports.updateCategory = async (req, res) => {
     const category = await Category.findOne({ where: { id, agency_id } });
     if (!category) return res.status(404).json({ message: 'Category not found' });
 
-    console.log(`Updating category with ID: ${id}`, req.body);
-    
-
     await category.update(req.body);
     res.json(category);
   } catch (err) {

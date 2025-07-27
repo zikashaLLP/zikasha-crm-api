@@ -41,9 +41,6 @@ exports.login = async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return res.status(400).json({ message: 'Invalid credentials' });
 
-
-    console.log('expired token:', process.env.JWT_EXPIRATION);
-
     const payload = { userId: user.id, agencyId: user.agency_id, role: user.role };
     const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '15min' });
     const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRATION || '15d' });
@@ -65,6 +62,18 @@ exports.refreshToken = (req, res) => {
   }
   try {
     const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    
+    // Handle superadmin tokens
+    if (payload.role === 'superadmin') {
+      const accessToken = jwt.sign(
+        { userId: payload.userId, role: payload.role, email: payload.email },
+        JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRATION || '15min' }
+      );
+      return res.json({ accessToken });
+    }
+    
+    // Handle regular user tokens
     const accessToken = jwt.sign(
       { userId: payload.userId, agencyId: payload.agencyId, role: payload.role },
       JWT_SECRET,
@@ -73,5 +82,52 @@ exports.refreshToken = (req, res) => {
     res.json({ accessToken });
   } catch (err) {
     return res.status(403).json({ message: 'Invalid refresh token' });
+  }
+};
+
+exports.superadminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check against environment variables
+    const superadminEmail = process.env.SUPERADMIN_EMAIL;
+    const superadminPassword = process.env.SUPERADMIN_PASSWORD;
+
+    if (!superadminEmail || !superadminPassword) {
+      return res.status(500).json({ message: 'Superadmin credentials not configured' });
+    }
+
+    // Validate credentials
+    if (email !== superadminEmail || password !== superadminPassword) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Create JWT token for superadmin
+    const payload = { 
+      userId: 'superadmin', 
+      role: 'superadmin',
+      email: superadminEmail
+    };
+    
+    const accessToken = jwt.sign(payload, JWT_SECRET, { 
+      expiresIn: process.env.JWT_EXPIRATION || '15m' 
+    });
+
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { 
+      expiresIn: process.env.JWT_REFRESH_EXPIRATION || '15d' 
+    });
+
+    res.json({ 
+      accessToken, 
+      refreshToken, 
+      user: { 
+        id: 'superadmin', 
+        email: superadminEmail, 
+        role: 'superadmin' 
+      } 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Login failed' });
   }
 };
