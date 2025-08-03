@@ -11,10 +11,15 @@ let refreshTokens = [];
 // Register user
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, agency_id, role } = req.body;
+    let { name, email, password, agency_id, role } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+
+    // Check if admin is creating a user for their agency
+    if (req.user.role === 'admin' && !agency_id) {
+      agency_id = req.user.agencyId;
+    }
 
     const agency = await Agency.findByPk(agency_id);
     if (!agency) return res.status(404).json({ message: 'Agency not found' });
@@ -23,7 +28,17 @@ exports.register = async (req, res) => {
 
     const user = await User.create({ name, email, password_hash, agency_id, role });
 
-    return res.status(201).json({ message: 'User registered successfully', user: { id: user.id, name: user.name, email: user.email } });
+    return res.status(201).json({ 
+      message: 'User registered successfully', 
+      user: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      } 
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Registration failed' });
@@ -47,7 +62,7 @@ exports.login = async (req, res) => {
 
     refreshTokens.push(refreshToken); // Store refresh token in memory (use DB in production)
 
-    res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, agency: user.Agency.name, agencyId: user.agency_id, role: user.role } });
+    res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email, agency: user.Agency, role: user.role } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Login failed' });

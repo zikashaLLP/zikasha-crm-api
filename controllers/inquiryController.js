@@ -7,10 +7,12 @@ exports.createInquiry = async (req, res) => {
   try {
     const { category_id, customer_id, followup_date, location } = req.body;
     const agency_id = req.user.agencyId;
+    const user_id = req.user.userId; // Assuming req.user contains the authenticated user
 
     const inquiry = await Inquiry.create({
       category_id,
       customer_id,
+      user_id,
       followup_date,
       location,
       agency_id
@@ -25,9 +27,10 @@ exports.createInquiry = async (req, res) => {
 exports.getInquiries = async (req, res) => {
   try {
     const agency_id = req.user.agencyId;
+    const user_id = req.user.userId;
     const { category_id, customer_id, followup_date_start, followup_date_end, exclude_categories, sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
 
-    const where = { agency_id };
+    const where = { agency_id, user_id };
 
     if (category_id) where.category_id = category_id;
     if (customer_id) where.customer_id = customer_id;
@@ -115,11 +118,17 @@ exports.updateInquiry = async (req, res) => {
   try {
     const { id } = req.params;
     const agency_id = req.user.agencyId;
+    const { category_id, customer_id, followup_date, location } = req.body;
 
     const inquiry = await Inquiry.findOne({ where: { id, agency_id } });
     if (!inquiry) return res.status(404).json({ message: 'Inquiry not found' });
 
-    await inquiry.update(req.body);
+    await inquiry.update({
+      category_id,
+      customer_id,
+      followup_date,
+      location,
+    });
     res.json(inquiry);
   } catch (err) {
     res.status(500).json({ message: 'Error updating inquiry', error: err.message });

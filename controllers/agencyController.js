@@ -80,15 +80,15 @@ exports.getAgencyById = async (req, res) => {
 
 exports.getAgencyUsers = async (req, res) => {
   try {
-    const { id } = req.params;
+    const agency_id = req.user.agencyId;
     const { sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
 
-    const agency = await Agency.findByPk(id);
+    const agency = await Agency.findByPk(agency_id);
     if (!agency) return res.status(404).json({ message: 'Agency not found' });
 
     // Build base query options
     const queryOptions = {
-      where: { agency_id: id },
+      where: { agency_id },
       attributes: { exclude: ['password_hash'] },
       order: [[sort_by, sort_order]]
     };
@@ -136,6 +136,34 @@ exports.getAgencyUsers = async (req, res) => {
     res.status(500).json({ message: 'Error fetching agency users', error: err.message });
   }
 };
+
+exports.updateAgencyUser = async (req, res) => {
+  try {
+    const { id, user_id } = req.params;
+    const { name, email, role } = req.body;
+    
+    // Check if admin is updating user for their agency
+    if (req.user.role === 'admin' && req.user.agencyId !== Number(id)) {
+      return res.status(403).json({ message: 'You can only update users for your own agency' });
+    }
+
+    const user = await User.findByPk(user_id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Check if email already exists for another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    await user.update({ name, email, role });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating user', error: err.message });
+  }
+}
 
 exports.updateAgency = async (req, res) => {
   try {

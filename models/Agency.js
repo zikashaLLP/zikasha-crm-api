@@ -9,6 +9,10 @@ const Agency = sequelize.define('Agency', {
   slug: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  crm_type: {
+    type: DataTypes.ENUM('real-estate', 'doctor', 'office'),
+    defaultValue: 'real-estate',
   }
 }, { timestamps: true });
 

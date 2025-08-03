@@ -10,6 +10,7 @@ router.get('/:id', verifyToken, agencyController.getAgencyById);
 router.put('/:id', verifyToken, verifySuperAdmin, agencyController.updateAgency);
 router.delete('/:id', verifyToken, verifySuperAdmin, agencyController.deleteAgency);
 
+router.put('/:id/users/:user_id', verifyToken, verifyAdminOrSuperadmin, agencyController.updateAgencyUser);
 router.get('/:id/users', verifyToken, verifyAdminOrSuperadmin, agencyController.getAgencyUsers);
 
 module.exports = router;
