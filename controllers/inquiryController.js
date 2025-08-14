@@ -51,7 +51,10 @@ exports.getInquiries = async (req, res) => {
 
     if (exclude_categories) {
       // Exclude specific categories
-      where.category_id = { [Op.notIn]: exclude_categories.split(',').map(Number) };
+      where[Op.or] = [
+        { category_id: null },
+        { category_id: { [Op.notIn]: exclude_categories.split(',').map(Number) } }
+      ];
     }
 
     // Build base query options
@@ -69,6 +72,7 @@ exports.getInquiries = async (req, res) => {
       
       queryOptions.limit = parsedLimit;
       queryOptions.offset = offset;
+      
       
       // Get paginated results with count
       const { rows: inquiries, count: total } = await Inquiry.findAndCountAll(queryOptions);
