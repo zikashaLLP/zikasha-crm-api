@@ -13,4 +13,8 @@ router.delete('/:id', verifyToken, verifySuperAdmin, agencyController.deleteAgen
 router.put('/:id/users/:user_id', verifyToken, verifyAdminOrSuperadmin, agencyController.updateAgencyUser);
 router.get('/:id/users', verifyToken, verifyAdminOrSuperadmin, agencyController.getAgencyUsers);
 
+router.get('/:id/settings', verifyToken, verifyAdminOrSuperadmin, agencyController.getAgencySettings);
+router.post('/:id/settings', verifyToken, verifyAdminOrSuperadmin, agencyController.updateAgencySettings);
+
+
 module.exports = router;

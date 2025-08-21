@@ -209,3 +209,42 @@ exports.deleteAgency = async (req, res) => {
     res.status(500).json({ message: 'Error deleting agency', error: err.message });
   }
 };
+
+exports.getAgencySettings = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (Number(id) !== Number(req.user.agencyId)) {
+      return res.status(403).json({ message: 'You can only access settings for your own agency' });
+    }
+    
+    const agency = await Agency.findByPk(id);
+    if (!agency) return res.status(404).json({ message: 'Agency not found' });
+
+    res.json({
+      settings: agency.settings
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching agency settings', error: err.message });
+  }
+}
+
+exports.updateAgencySettings = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { settings } = req.body;
+
+    if (Number(id) !== Number(req.user.agencyId)) {
+      return res.status(403).json({ message: 'You can only access settings for your own agency' });
+    }
+
+    const agency = await Agency.findByPk(id);
+    if (!agency) return res.status(404).json({ message: 'Agency not found' });
+
+    // Update features and settings
+    await agency.update({ settings });
+    res.json(agency);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating agency settings', error: err.message });
+  }
+}

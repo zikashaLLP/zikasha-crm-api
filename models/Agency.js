@@ -13,6 +13,14 @@ const Agency = sequelize.define('Agency', {
   crm_type: {
     type: DataTypes.ENUM('real-estate', 'doctor', 'office'),
     defaultValue: 'real-estate',
+  },
+  features: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
+  settings: {
+    type: DataTypes.JSON,
+    allowNull: true,
   }
 }, { timestamps: true });
 
