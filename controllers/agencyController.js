@@ -52,31 +52,6 @@ exports.getAgencyById = async (req, res) => {
   }
 };
 
-// exports.getAgencyUsers = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { sort_by = 'createdAt', sort_order = 'desc', limit, page } = req.query;
-
-//     const agency = await Agency.findByPk(id);
-//     if (!agency) return res.status(404).json({ message: 'Agency not found' });
-
-//     const users = await User.findAll({ 
-//       where: { agency_id: id },
-//       attributes: { exclude: ['password_hash'] }
-//     });
-
-//     res.json({
-//       agency: {
-//         id: agency.id,
-//         name: agency.name,
-//         slug: agency.slug
-//       },
-//       users
-//     });
-//   } catch (err) {
-//     res.status(500).json({ message: 'Error fetching agency users', error: err.message });
-//   }
-// };
 
 exports.getAgencyUsers = async (req, res) => {
   try {

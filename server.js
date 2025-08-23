@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const fileUpload = require('express-fileupload');
 const sequelize = require('./config/database');
 const Agency = require('./models/Agency');
 const User = require('./models/User');
@@ -16,6 +17,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(fileUpload());
 
 // Add this after app.use(express.json())
 app.use('/api/auth', authRoutes);

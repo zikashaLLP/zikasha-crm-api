@@ -11,4 +11,6 @@ router.get('/:id', inquiryController.getInquiryById);
 router.put('/:id', inquiryController.updateInquiry);
 router.delete('/:id', inquiryController.deleteInquiry);
 
+// Import inquiries
+router.post('/import', inquiryController.importInquiries);
 module.exports = router;
