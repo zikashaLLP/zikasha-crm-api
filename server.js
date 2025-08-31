@@ -10,8 +10,12 @@ const customerRoutes = require('./routes/customerRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const logRoutes = require('./routes/logRoutes');
-const agency_routes = require('./routes/agencyRoutes');
+const agencyRoutes = require('./routes/agencyRoutes');
+const notificationRoutes = require('./routes/notificationRoute');
+const scheduleInquiryNotifications = require('./cron/inquiry-notifications');
 
+// Cron jobs
+scheduleInquiryNotifications();
 
 require('dotenv').config();
 const app = express();
@@ -25,7 +29,8 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/logs', logRoutes);
-app.use('/api/agencies', agency_routes);
+app.use('/api/agencies', agencyRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Sync and connect
 sequelize.sync({ alter: true })

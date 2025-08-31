@@ -12,7 +12,11 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.ENUM('admin', 'staff'),
     defaultValue: 'staff',
-  }
+  },
+  notification_subscription: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
 }, { timestamps: true });
 
 User.belongsTo(Agency, { foreignKey: 'agency_id' });

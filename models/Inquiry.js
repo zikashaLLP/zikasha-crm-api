@@ -9,6 +9,10 @@ const Inquiry = sequelize.define('Inquiry', {
   followup_date: DataTypes.DATE,
   location: DataTypes.STRING,
   latest_log: DataTypes.STRING,
+  notified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  }
 }, {
   timestamps: true
 });

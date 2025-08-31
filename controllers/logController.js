@@ -30,6 +30,7 @@ exports.createLog = async (req, res) => {
       ...(category_id && { category_id }),
       ...(followup_date && { followup_date }),
       latest_log: content,
+      notified: false // Reset notified status on new log
     });
 
     // Create the log entry
