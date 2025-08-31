@@ -30,11 +30,7 @@ async function checkInquiryFollowups() {
 
   try {
     let currentTime = new Date();
-    let tenMinutesFromNow = new Date(currentTime.getTime() + 10 * 60000);
-    
-    currentTime = currentTime.toUTCString();
-    tenMinutesFromNow = tenMinutesFromNow.toUTCString();
-    
+    let tenMinutesFromNow = new Date(currentTime.getTime() + 10 * 60000);  
 
     // Find inquiries with followup_date within the next 10 minutes
     const inquiries = await Inquiry.findAll({
